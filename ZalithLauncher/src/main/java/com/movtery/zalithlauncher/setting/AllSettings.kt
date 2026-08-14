@@ -26,15 +26,11 @@ class AllSettings {
         val ignoreNotchLauncher = BooleanSettingUnit("ignoreNotchLauncher", true)
 
         @JvmStatic
-        val resolutionRatio = lazy {
-            //根据设备内存自动选择一个更安全的默认渲染分辨率比例，避免低配设备满分辨率渲染导致掉帧/卡顿
+        val resolutionRatio: IntSettingUnit by lazy {
             IntSettingUnit("resolutionRatio", LauncherPreferences.findBestResolutionRatio(ContextExecutor.getApplication()))
-        }.value
+        }
 
         @JvmStatic
-        // Defaulted to true: keeps CPU/GPU clocks steady instead of letting Android
-        // boost-then-throttle aggressively, which is what causes sudden FPS drops
-        // during longer play sessions on weaker/thermally-limited devices.
         val sustainedPerformance = BooleanSettingUnit("sustainedPerformance", true)
 
         @JvmStatic
@@ -122,7 +118,6 @@ class AllSettings {
 
         @JvmStatic
         val ramAllocation = lazy {
-            //涉及到Context初始化，需要进行懒加载
             IntSettingUnit("allocation", LauncherPreferences.findBestRAMAllocation(ContextExecutor.getApplication()))
         }
 
