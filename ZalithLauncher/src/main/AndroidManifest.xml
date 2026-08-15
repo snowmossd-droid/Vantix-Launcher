@@ -43,7 +43,7 @@
             android:name="android.max_aspect"
             android:value="ratio_float" />
         <activity
-            android:name="com.movtery.zalithlauncher.ui.activity.SplashActivity"
+            android:name="com.movtery.zalithlauncher.ui.activity.IntroSplashActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
@@ -54,6 +54,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.movtery.zalithlauncher.ui.activity.SplashActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:screenOrientation="sensorLandscape" />
         <activity
             android:name="net.kdt.pojavlaunch.MissingStorageActivity"
             android:exported="false"
