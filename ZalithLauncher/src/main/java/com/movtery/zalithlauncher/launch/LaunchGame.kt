@@ -41,12 +41,6 @@ import org.greenrobot.eventbus.EventBus
 
 class LaunchGame {
     companion object {
-        /**
-         * 改为启动游戏前进行的操作
-         * - 进行登录，同时也能及时的刷新账号的信息（这明显更合理不是吗，PojavLauncher？）
-         * - 复制 options.txt 文件到游戏目录
-         * @param version 选择的版本
-         */
         @JvmStatic
         fun preLaunch(context: Context, version: Version) {
             val networkAvailable = NetworkUtils.isNetworkAvailable(context)
@@ -57,7 +51,6 @@ class LaunchGame {
                 val versionName = version.getVersionName()
                 val mcVersion = AsyncMinecraftDownloader.getListedVersion(versionName)
                 val listener = ContextAwareDoneListener(context, version)
-                //若网络未连接，跳过下载任务直接启动
                 if (!networkAvailable) {
                     listener.onDownloadDone()
                 } else {
@@ -76,7 +69,6 @@ class LaunchGame {
             }
 
             if (!networkAvailable) {
-                // 网络未链接，无法登录，但是依旧允许玩家启动游戏 (临时创建一个同名的离线账号启动游戏)
                 Toast.makeText(context, context.getString(R.string.account_login_no_network), Toast.LENGTH_SHORT).show()
                 launch(true)
                 return
@@ -94,7 +86,6 @@ class LaunchGame {
                     TaskExecutors.runInUIThread {
                         Toast.makeText(context, context.getString(R.string.account_login_done), Toast.LENGTH_SHORT).show()
                     }
-                    //登录完成，正式启动游戏！
                     launch()
                 },
                 { exception ->
@@ -159,7 +150,6 @@ class LaunchGame {
 
             launch(activity, account, minecraftVersion, javaRuntime, customArgs)
 
-            //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
             GameService.setActive(false)
         }
 
@@ -171,7 +161,6 @@ class LaunchGame {
 
             if (versionRuntime.isNotEmpty()) return versionRuntime
 
-            //如果版本未选择Java环境，则自动选择合适的环境
             var runtime = AllSettings.defaultRuntime.getValue()
             val pickedRuntime = MultiRTUtils.read(runtime)
             if (pickedRuntime.javaVersion == 0 || pickedRuntime.javaVersion < targetJavaVersion) {
@@ -227,7 +216,6 @@ class LaunchGame {
             val versionInfo = Tools.getVersionInfo(minecraftVersion)
             val gameDirPath = minecraftVersion.getGameDir()
 
-            //预处理
             Tools.disableSplash(gameDirPath)
             val launchClassPath = Tools.generateLaunchClassPath(versionInfo, minecraftVersion)
 
@@ -261,6 +249,13 @@ class LaunchGame {
             } else R.string.memory_warning_msg
 
             if (AllSettings.ramAllocation.value.getValue() > freeDeviceMemory) {
+                if (AllSettings.autoRamAllocation.getValue()) {
+                    val safeValue = (freeDeviceMemory - 64).coerceAtLeast(256)
+                    Logging.i("MemStat",
+                        "Auto RAM: shrinking allocation from ${AllSettings.ramAllocation.value.getValue()} to $safeValue to fit currently free memory")
+                    AllSettings.ramAllocation.value.put(safeValue).save()
+                    return
+                }
                 val builder = TipDialog.Builder(activity)
                     .setTitle(R.string.generic_warning)
                     .setMessage(activity.getString(stringId, freeDeviceMemory, AllSettings.ramAllocation.value.getValue()))
@@ -268,9 +263,6 @@ class LaunchGame {
                     .setCenterMessage(false)
                     .setShowCancel(false)
                 if (LifecycleAwareTipDialog.haltOnDialog(activity.lifecycle, builder)) return
-                // If the dialog's lifecycle has ended, return without
-                // actually launching the game, thus giving us the opportunity
-                // to start after the activity is shown again
             }
         }
     }
