@@ -122,13 +122,16 @@ class AllSettings {
         }
 
         @JvmStatic
+        val autoRamAllocation = BooleanSettingUnit("autoRamAllocation", true)
+
+        @JvmStatic
         val javaSandbox = BooleanSettingUnit("java_sandbox", true)
 
         @JvmStatic
         val gameMenuShowMemory = BooleanSettingUnit("gameMenuShowMemory", false)
 
         @JvmStatic
-        val gameMenuShowFPS = BooleanSettingUnit("gameMenuShowFPS", false)
+        val gameMenuShowFPS = BooleanSettingUnit("gameMenuShowFPS", true)
 
         @JvmStatic
         val gameMenuMemoryText = StringSettingUnit("gameMenuMemoryText", "M:")
