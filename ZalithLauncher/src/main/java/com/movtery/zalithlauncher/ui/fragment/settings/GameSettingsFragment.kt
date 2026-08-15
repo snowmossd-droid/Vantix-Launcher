@@ -26,6 +26,7 @@ import net.kdt.pojavlaunch.Architecture
 import net.kdt.pojavlaunch.Tools
 import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension
 import net.kdt.pojavlaunch.multirt.MultiRTConfigDialog
+import net.kdt.pojavlaunch.prefs.LauncherPreferences
 import kotlin.math.min
 
 class GameSettingsFragment : AbstractSettingsFragment(R.layout.settings_fragment_game, SettingCategory.GAME) {
@@ -119,7 +120,7 @@ class GameSettingsFragment : AbstractSettingsFragment(R.layout.settings_fragment
         ).toInt()
         else deviceRam - (if (deviceRam < 3064) 800 else 1024) //To have a minimum for the device to breathe
 
-        SeekBarSettingsWrapper(
+        val ramSeekBarWrapper = SeekBarSettingsWrapper(
             context,
             AllSettings.ramAllocation.value,
             binding.allocationLayout,
@@ -142,6 +143,33 @@ class GameSettingsFragment : AbstractSettingsFragment(R.layout.settings_fragment
                 )
             }
         }
+
+        //Khóa/mở khóa thanh kéo RAM thủ công theo trạng thái tự động điều chỉnh RAM
+        fun applyAutoRamLockState(enabled: Boolean) {
+            ramSeekBarWrapper.seekbarView.isEnabled = !enabled
+            binding.allocationLayout.alpha = if (enabled) 0.5f else 1.0f
+            binding.allocationLayout.isEnabled = !enabled
+            if (enabled) {
+                val safeValue = LauncherPreferences.findBestRAMAllocation(context)
+                ramSeekBarWrapper.seekbarView.progress = safeValue
+                AllSettings.ramAllocation.value.put(safeValue).save()
+                ramSeekBarWrapper.setSeekBarValueTextView()
+                updateMemoryInfo(context, safeValue.toLong())
+            }
+        }
+
+        SwitchSettingsWrapper(
+            context,
+            AllSettings.autoRamAllocation,
+            binding.autoRamLayout,
+            binding.autoRam
+        ).setOnCheckedChangeListener { _, isChecked, listener ->
+            listener.onSave()
+            applyAutoRamLockState(isChecked)
+        }
+
+        //Áp dụng trạng thái khóa ngay khi mở trang cài đặt, khớp với giá trị đã lưu
+        applyAutoRamLockState(AllSettings.autoRamAllocation.getValue())
 
         SwitchSettingsWrapper(
             context,
